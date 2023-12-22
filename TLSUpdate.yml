@@ -1,0 +1,28 @@
+#Updating TLS protocol on apache web server and testing if it was changed successfully using OpenSSL module
+---
+- name: Updating TLS on Apache server
+  hosts: apache_server
+  become: yes
+  vars:
+    ssl_conf: '/etc/apache2/mods-available/ssl.conf'
+    line_update: 'SSLProtocol'
+  tasks:
+    - name: Update SSL.conf file
+      lineinfile:
+        path: '{{ ssl_conf }}'
+        regexp: '.*{{ line_update }}.*'
+        line: '         SSLProtocol -all +TLSv1.2'
+        backrefs: yes
+        state: present
+        create: no
+    - name: Restart Apache2 Service
+      service:
+        name: apache2
+        state: restarted
+    - name: Test TLS configuration using OpenSSL
+      command: openssl s_client -connect ApacheWebServer:443 -tls1_2
+      register: tls_test_Result
+      ignore_errors: yes
+    - name: Show TLS Test Results
+      debug:
+        var: tls_test_result.stdout_lines
