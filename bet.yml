@@ -1,0 +1,32 @@
+---
+- name: Updating TLS on Apache server
+  hosts: apache_server
+  become: yes
+  vars:
+    ssl_conf: '/etc/apache2/mods-available/ssl.conf'
+    line_update: 'SSLProtocol'
+  tasks:
+    - name: Create purpose.conf file in apache webserver
+      shell: touch /etc/apache2/sites-available/purpose.com.conf
+    - name: Copy over purpose.conf.j2 to apache web server
+      template:
+        src: '/home/Playbook/purpose.conf.j2'
+        dest: '/etc/apache2/sites-available/purpose.com.conf'
+    - name: Enable site for purpose.com.conf
+      shell: sudo a2ensite purpose.com.conf
+
+    - name: Disable default site 000-default.conf
+      shell: sudo a2dissite 000-default.conf
+
+
+    - name: Update SSL.conf file
+      lineinfile:
+        path: '{{ ssl_conf }}'
+        regexp: '.*{{ line_update }}.*'
+        line: '         SSLProtocol -all -TLSv1.3'
+        backrefs: yes
+        state: present
+        create: no
+
+    - name: ensure syntax for apache is correct
+      shell: sudo apache2ctl configtest
