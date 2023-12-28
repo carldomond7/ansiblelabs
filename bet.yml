@@ -7,11 +7,15 @@
     line_update: 'SSLProtocol'
   tasks:
     - name: Create purpose.conf file in apache webserver
-      shell: touch /etc/apache2/sites-available/purpose.com.conf
+      file:
+        path: /etc/apache2/sites-available/purpose.com.conf
+        state: touch
+
     - name: Copy over purpose.conf.j2 to apache web server
       template:
         src: '/home/Playbook/purpose.conf.j2'
         dest: '/etc/apache2/sites-available/purpose.com.conf'
+
     - name: Enable site for purpose.com.conf
       shell: sudo a2ensite purpose.com.conf
 
@@ -30,3 +34,20 @@
 
     - name: ensure syntax for apache is correct
       shell: sudo apache2ctl configtest
+
+    - name: Restart Apache2 service
+      shell: sudo systemctl reload apache2
+
+    - name: Allow Apache full IF ufw status returns status inactive
+      shell: sudo ufw status
+      register: ufw_status
+
+    - name: Allow 'Apache Full' in UFW
+      shell: sudo ufw allow 'Apache Full'
+      when: ufw_status.stdout == 'inactive'
+
+    - name: Restart Apache2 service
+      shell: sudo systemctl reload apache2
+
+    - name: Install certbot
+      shell: sudo apt install certbot python3-certbot-apache -y
