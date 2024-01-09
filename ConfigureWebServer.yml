@@ -1,0 +1,119 @@
+---
+- name: Vulnerability Package Management
+  hosts: all
+  become: yes
+  tasks:
+    - name: Configure Hostname
+      ansible.builtin.hostname:
+        name: Apache
+        
+    - name: Install Apache2
+      apt:
+        update_cache: yes
+        name: apache2
+
+    - name: Create purpose.com.conf
+      file:
+        path: "/etc/apache2/sites-available/purpose.com.conf"
+        state: touch
+
+    - name: Create file in /etc/apache2/sites-available/ directory
+      copy:
+        dest: "/etc/apache2/sites-available/purpose.com.conf"
+        content: |
+          <VirtualHost *:80>
+            ServerAdmin webmaster@example.com
+            ServerName purpose.com
+            ServerAlias www.purpose.com
+            Documentroot /var/www/html
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access.log combined
+          </VirtualHost>
+
+    - name: Enable purpose.com.conf site
+      ansible.builtin.shell: sudo a2ensite purpose.com.conf
+
+    - name: Disable default Apache2 site
+      ansible.builtin.shell: sudo a2dissite 000-default.conf
+
+    - name: Reload Apache2 service
+      ansible.builtin.shell: systemctl reload apache2
+
+    - name: Create TEST repository
+      file:
+        path: /var/www/html/test-repo
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+
+    - name: Insert Directory Block in Apache2.conf file
+      blockinfile:
+        path: /etc/apache2/apache2.conf
+        block: |
+          <Directory /var/www/html/test-repo>
+            Options Indexes FollowSymLinks
+            AllowOverride None
+            Require all granted
+          </Directory>
+        insertafter: "</Directory>"
+
+    - name: Download test packages in test-repo
+      ansible.builtin.shell: |
+        cd /var/www/html/test-repo
+        apt download docker
+        apt download nginx
+        apt download apache2
+        apt download cowsay
+        apt download htop
+
+    - name: Install dpkg-dev service
+      apt:
+        update_cache: yes
+        name: dpkg-dev
+
+    - name: Create Packages.gz file in /var/www/html/test-repo
+      ansible.builtin.shell: |
+        cd /var/www/html/test-repo
+        dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz
+
+    - name: create OFFICIAL Repository
+      file:
+        path: /var/www/html/official-repo
+        owner: www-data
+        group: www-data
+        mode: '0755'
+
+    - name: Enable directory on web server in apache2.conf
+      blockinfile:
+        path: /etc/apache2/apache2.conf
+        block: |
+          <Directory /var/www/html/official-repo>
+            Options Indexes FollowSymLinks
+            AllowOverride None
+            Require all granted
+          </Directory>
+        insertafter: "</Directory>"
+
+    - name: Download packages that passed smoke test
+      ansible.builtin.shell: |
+        cd /var/www/html/official-repo
+        apt download {{ item }}
+      loop:
+        - docker
+        - nginx
+        - apache2
+        - cowsay
+        - htop
+        
+    - name: Install dpkg-dev service
+      apt:
+        update_cache: yes
+        name: dpkg-dev
+        
+    - name: Create Packages.gz file in /var/www/html/official-repo
+      ansible.builtin.shell: |
+        cd /var/www/html/official-repo
+        dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz
+
+     
