@@ -1,0 +1,8 @@
+[web_server]
+apache ansible_host=IP
+
+[test]
+test_env ansible_host=IP
+
+[prod]
+prod_env ansible_host=IP
