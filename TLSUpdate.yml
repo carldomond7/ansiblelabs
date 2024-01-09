@@ -11,7 +11,7 @@
       lineinfile:
         path: '{{ ssl_conf }}'
         regexp: '.*{{ line_update }}.*'
-        line: '         SSLProtocol -all +TLSv1.2'
+        line: '         SSLProtocol -all +TLSv1.3'
         backrefs: yes
         state: present
         create: no
