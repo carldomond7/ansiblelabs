@@ -3,7 +3,7 @@
   hosts: test
   become: yes
   vars:
-    Apache_hostname: "Apache"
+    Apache_hostname: "ApacheWebServer"
   tasks:
     - name: Create test.list file
       file:
