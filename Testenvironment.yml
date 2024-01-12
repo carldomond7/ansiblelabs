@@ -14,7 +14,7 @@
       uri:
         url: https://httpbin.org/ip
         return_content: yes
-      delegate_to: {{ Apache_hostname }}
+      delegate_to: "{{ Apache_hostname }}"
       register: ip_result
 
     - name: Edit test.list file inside /etc/apt/sources.list.d/ directory
