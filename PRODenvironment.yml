@@ -3,7 +3,7 @@
   hosts: prod
   become: yes
   vars:
-    Apache_hostname: "Apache"
+    Apache_hostname: "ApacheWebServer"
   tasks:
   - name: Append offical repo URl to /etc/apt/sources.list file
       blockinfile:
@@ -15,7 +15,7 @@
       uri:
         url: https://httpbin.org/ip
         return_content: yes
-      delegate_to: {{ Apache_hostname }}
+      delegate_to: "{{ Apache_hostname }}"
       register: ip_result
 
   - name: Update apt Cache
