@@ -1,0 +1,7 @@
+<VirtualHost *:443>
+DocumentRoot /var/www/
+SSLEngine on
+SSLCertificateKeyFile /etc/ssl/private/web.purpose.com.key
+SSLCertificateFile /etc/ssl/certs/web.purpose.com.crt
+</VirtualHost>
+~                                                                                                                     ~                          
